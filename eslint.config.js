@@ -37,7 +37,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["*.js", "*.ts", "tools/**/*.ts", "e2e/**/*.ts"],
+    files: ["*.js", "*.ts", "tools/**/*.{ts,mjs}", "e2e/**/*.ts"],
     languageOptions: { globals: { ...globals.node } },
   },
   // UI: kein direkter Zugriff auf IndexedDB (Repositories kommen per Context).

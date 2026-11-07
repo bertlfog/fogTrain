@@ -1,0 +1,130 @@
+{
+  "app": "TrainingApp",
+  "schemaVersion": 1,
+  "exportedAt": "2026-02-01T09:00:00.000Z",
+  "data": {
+    "exercises": [
+      {
+        "id": "e-1",
+        "name": "Kniebeuge",
+        "description": "Füße schulterbreit, Rücken gerade.",
+        "defaultReps": 12,
+        "defaultWeightKg": 20,
+        "createdAt": "2026-01-01T10:00:00.000Z",
+        "updatedAt": "2026-01-05T10:00:00.000Z"
+      },
+      {
+        "id": "e-2",
+        "name": "Plank",
+        "description": "Unterarmstütz halten.",
+        "defaultDurationSec": 45,
+        "createdAt": "2026-01-01T10:05:00.000Z",
+        "updatedAt": "2026-01-01T10:05:00.000Z"
+      },
+      {
+        "id": "e-3",
+        "name": "Alte Übung",
+        "description": "",
+        "createdAt": "2026-01-01T10:10:00.000Z",
+        "updatedAt": "2026-01-20T10:00:00.000Z",
+        "archivedAt": "2026-01-20T10:00:00.000Z"
+      }
+    ],
+    "exerciseImages": [
+      {
+        "id": "img-1",
+        "exerciseId": "e-1",
+        "mimeType": "image/png",
+        "sortOrder": 0,
+        "createdAt": "2026-01-02T10:00:00.000Z",
+        "dataBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+      }
+    ],
+    "plans": [
+      {
+        "id": "p-1",
+        "name": "Beine & Rumpf",
+        "createdAt": "2026-01-03T10:00:00.000Z",
+        "updatedAt": "2026-01-03T10:00:00.000Z"
+      }
+    ],
+    "planItems": [
+      {
+        "id": "pi-1",
+        "planId": "p-1",
+        "exerciseId": "e-1",
+        "position": 0,
+        "targetSets": 3,
+        "targetReps": 12,
+        "targetWeightKg": 20
+      },
+      {
+        "id": "pi-2",
+        "planId": "p-1",
+        "exerciseId": "e-2",
+        "position": 1,
+        "targetSets": 2,
+        "targetDurationSec": 45
+      }
+    ],
+    "workouts": [
+      {
+        "id": "w-1",
+        "planId": "p-1",
+        "planNameSnapshot": "Beine & Rumpf",
+        "startedAt": "2026-01-10T17:00:00.000Z",
+        "endedAt": "2026-01-10T17:45:00.000Z",
+        "note": "Gut gelaufen"
+      },
+      {
+        "id": "w-2",
+        "startedAt": "2026-01-12T17:00:00.000Z",
+        "endedAt": "2026-01-12T17:20:00.000Z"
+      }
+    ],
+    "loggedSets": [
+      {
+        "id": "s-1",
+        "workoutId": "w-1",
+        "exerciseId": "e-1",
+        "exerciseNameSnapshot": "Kniebeuge",
+        "exerciseOrder": 0,
+        "setNumber": 1,
+        "reps": 12,
+        "weightKg": 20,
+        "loggedAt": "2026-01-10T17:05:00.000Z"
+      },
+      {
+        "id": "s-2",
+        "workoutId": "w-1",
+        "exerciseId": "e-1",
+        "exerciseNameSnapshot": "Kniebeuge",
+        "exerciseOrder": 0,
+        "setNumber": 2,
+        "reps": 10,
+        "weightKg": 22.5,
+        "loggedAt": "2026-01-10T17:09:00.000Z"
+      },
+      {
+        "id": "s-3",
+        "workoutId": "w-1",
+        "exerciseId": "e-2",
+        "exerciseNameSnapshot": "Plank",
+        "exerciseOrder": 1,
+        "setNumber": 1,
+        "durationSec": 45,
+        "loggedAt": "2026-01-10T17:15:00.000Z"
+      },
+      {
+        "id": "s-4",
+        "workoutId": "w-2",
+        "exerciseId": "e-3",
+        "exerciseNameSnapshot": "Alte Übung",
+        "exerciseOrder": 0,
+        "setNumber": 1,
+        "reps": 8,
+        "loggedAt": "2026-01-12T17:10:00.000Z"
+      }
+    ]
+  }
+}

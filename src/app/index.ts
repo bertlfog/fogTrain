@@ -1,2 +1,2 @@
-// Platzhalter: Composition Root. Verdrahtet Repositories und Provider (T3/T5).
-export {};
+// Composition Root: verdrahtet Repositories und UI (T3).
+export { Root } from "./Root";

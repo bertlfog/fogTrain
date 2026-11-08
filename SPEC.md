@@ -35,7 +35,7 @@ Allgemeines Offline-Verhalten: Nach der ersten Installation/dem ersten Laden fun
 
 ### F-A: Übung anlegen/bearbeiten
 1. Nutzer öffnet „Übungen" und tippt „Neue Übung".
-2. Nutzer gibt Namen (Pflicht) und Kurzbeschreibung ein; optional Standard-Wiederholungen, Standard-Gewicht, Standard-Dauer.
+2. Nutzer gibt Namen (Pflicht) und Kurzbeschreibung ein; optional Standard-Sätze, Standard-Wiederholungen, Standard-Gewicht, Standard-Dauer.
 3. Optional: Bild(er) hinzufügen (Kamera oder Galerie). Bilder werden lokal gespeichert, verkleinert (**[Annahme]** längste Kante max. 1280 px).
 4. Nutzer tippt „Speichern"; Übung erscheint in der Liste.
 5. Bearbeiten: Übung antippen, ändern, speichern. Löschen: mit Rückfrage; Übung wird archiviert (`archivedAt`), wenn sie in Plänen oder Verlauf vorkommt, sonst hart gelöscht (siehe 3).
@@ -45,14 +45,14 @@ Allgemeines Offline-Verhalten: Nach der ersten Installation/dem ersten Laden fun
 1. Nutzer öffnet „Pläne" und tippt „Neuer Plan".
 2. Nutzer vergibt Namen.
 3. Nutzer fügt Übungen aus der Übungsliste hinzu (Mehrfachauswahl, Suche nach Name).
-4. Je Planeintrag: Soll-Sätze, Soll-Wiederholungen, optional Soll-Gewicht, optional Soll-Dauer; Vorbelegung aus den Übungs-Standards.
+4. Je Planeintrag: Soll-Sätze, Soll-Wiederholungen, optional Soll-Gewicht, optional Soll-Dauer; Vorbelegung aus den Übungs-Standards (einschließlich Standard-Sätzen).
 5. Reihenfolge per Auf/Ab-Buttons ändern (**[Annahme]** keine Drag-and-drop-Pflicht), Einträge entfernen.
 6. Speichern. Plan erscheint in der Liste.
 - Offline: identisch.
 
 ### F-C: Workout loggen
 1. Startseite zeigt Pläne; Nutzer tippt „Start" bei einem Plan (Tap 1). Alternativ „Freies Workout" ohne Plan, Übungen werden während des Workouts hinzugefügt.
-2. App legt sofort ein Workout mit Startzeit an und zeigt die erste Übung mit vorbefüllten Sätzen (Soll-Werte, bzw. Werte des letzten Mals **[Annahme]**: letzte geloggte Werte dieser Übung haben Vorrang vor Plan-Sollwerten).
+2. App legt sofort ein Workout mit Startzeit an und zeigt die erste Übung mit vorbefüllten Sätzen (Soll-Werte, bzw. Werte des letzten Mals **[Annahme]**: letzte geloggte Werte dieser Übung haben Vorrang vor Plan-Sollwerten); die Soll-Satzanzahl lässt sich für das laufende Workout übersteuern.
 3. Je Satz: Wiederholungen, Gewicht, Dauer sind vorbefüllt und per +/- oder Zahlenfeld änderbar; Tippen auf „Satz erledigt" (Tap 2) speichert den Satz sofort in IndexedDB.
 4. Weitere Sätze hinzufügen oder entfernen; zur nächsten Übung wechseln; Übung überspringen.
 5. „Workout beenden" setzt Endzeit; Zusammenfassung wird angezeigt.
@@ -115,6 +115,7 @@ export interface Exercise extends Timestamps {
   id: Id;
   name: string;                 // Pflicht, nicht leer, max. 100 Zeichen
   description: string;          // Kurzbeschreibung, darf leer sein, max. 2000 Zeichen
+  defaultSets?: number;         // Standard-Satzanzahl
   defaultReps?: number;         // Standard-Wiederholungen
   defaultWeightKg?: number;
   defaultDurationSec?: number;

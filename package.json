@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "check:bundle": "node tools/check-bundle-size.mjs",
     "e2e": "playwright test"
   },
   "dependencies": {

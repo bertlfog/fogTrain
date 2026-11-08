@@ -7,6 +7,7 @@ import { HistoryPage } from "./pages/HistoryPage";
 import { PlansPage } from "./pages/PlansPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { StartPage } from "./pages/StartPage";
+import { WorkoutPage } from "./pages/WorkoutPage";
 import { StoragePersistenceProvider } from "./StoragePersistence";
 
 /**
@@ -24,6 +25,7 @@ export function App() {
             <Route path={paths.plans} element={<PlansPage />} />
             <Route path={paths.history} element={<HistoryPage />} />
             <Route path={paths.settings} element={<SettingsPage />} />
+            <Route path="/training/:id" element={<WorkoutPage />} />
             <Route path="*" element={<Navigate to={paths.start} replace />} />
           </Route>
         </Routes>

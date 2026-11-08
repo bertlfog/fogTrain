@@ -39,6 +39,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Bundle-Größe prüfen
+        run: npm run check:bundle
+
       - name: Playwright-Version ermitteln
         id: playwright
         run: echo "version=$(npm ls @playwright/test --json | node -p 'Object.values(JSON.parse(require("fs").readFileSync(0,"utf8")).dependencies)[0].version')" >> "$GITHUB_OUTPUT"

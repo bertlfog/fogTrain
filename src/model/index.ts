@@ -27,6 +27,7 @@ export interface Exercise extends Timestamps {
   id: Id;
   name: string; // Pflicht, nicht leer, max. 100 Zeichen
   description: string; // Kurzbeschreibung, darf leer sein, max. 2000 Zeichen
+  defaultSets?: number; // Standard-Satzanzahl
   defaultReps?: number; // Standard-Wiederholungen
   defaultWeightKg?: number;
   defaultDurationSec?: number;

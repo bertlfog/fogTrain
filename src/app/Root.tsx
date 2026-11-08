@@ -4,6 +4,7 @@ import { openIndexedDbRepositories } from "../data/indexeddb";
 import type { Repositories } from "../data/repositories";
 import { App } from "../ui/App";
 import { RepositoryProvider } from "../ui/RepositoryContext";
+import { texts } from "../ui/texts";
 
 type State =
   | { status: "loading" }
@@ -50,15 +51,15 @@ export function Root() {
   }
 
   return (
-    <main>
-      <h1>TrainingApp</h1>
+    <main className="content">
+      <h1>{texts.appName}</h1>
       {state.status === "loading" ? (
-        <p role="status">Daten werden geladen …</p>
+        <p role="status">{texts.common.loading}</p>
       ) : (
-        <p role="alert">
-          Der lokale Speicher ist nicht verfügbar. Bitte die Seite neu laden
-          oder den Browser-Speicher freigeben.
-        </p>
+        <section className="card" role="alert">
+          <h2>{texts.storageUnavailable.title}</h2>
+          <p>{texts.storageUnavailable.hint}</p>
+        </section>
       )}
     </main>
   );

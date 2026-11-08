@@ -1,0 +1,209 @@
+/*
+ * Grundstile (SPEC T5, N9): Smartphone zuerst, Tap-Ziele mindestens 48 px,
+ * Kontrast mindestens WCAG AA, Hell/Dunkel nach Systemeinstellung.
+ * Farben nur über die Variablen unten; in beiden Schemata AA-geprüft.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: #ffffff;
+  --surface: #f1f5f4;
+  --text: #14211f;
+  --muted: #46534f;
+  --border: #c3cfcb;
+  --primary: #0f766e;
+  --on-primary: #ffffff;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    sans-serif;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1514;
+    --surface: #18211f;
+    --text: #e8efed;
+    --muted: #a7b6b2;
+    --border: #33433f;
+    --primary: #5eead4;
+    --on-primary: #06201c;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 16px 16px 24px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+
+p {
+  margin: 0 0 12px;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Karten und Leerzustände */
+.card,
+.empty-state {
+  padding: 20px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.card p:last-child,
+.empty-state p:last-of-type {
+  margin-bottom: 0;
+}
+
+.empty-state p {
+  color: var(--muted);
+}
+
+.empty-state .button {
+  margin-top: 16px;
+}
+
+/* Schaltflächen und Links in Schaltflächenform */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Listen */
+.list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* Hinweis auf neue App-Version */
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.update-banner .button {
+  background: var(--on-primary);
+  color: var(--primary);
+}
+
+/* Untere Navigation */
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav ul {
+  display: flex;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+/* Breite nach Inhalt plus gleich verteiltem Rest: auch das längste Label
+   ("Einstellungen") passt auf schmalen Handys, ohne die Schrift zu verkleinern. */
+.bottom-nav li {
+  flex: 1 1 auto;
+  min-width: 48px;
+}
+
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 6px 4px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  /* Gewicht bleibt immer gleich, damit die Leiste beim Wechsel nicht springt. */
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav a[aria-current="page"] {
+  color: var(--primary);
+  box-shadow: inset 0 3px 0 var(--primary);
+}

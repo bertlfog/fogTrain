@@ -2,6 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 4173;
 
+// Optional: vorinstallierten Chromium nutzen (z. B. in Sandbox-Umgebungen ohne
+// Browser-Download). In der CI nicht gesetzt; dort gilt der Playwright-Browser.
+const executablePath = process.env["CHROMIUM_PATH"];
+
 // E2E läuft gegen den Produktions-Build (SPEC 6).
 export default defineConfig({
   testDir: "e2e",
@@ -11,6 +15,7 @@ export default defineConfig({
   reporter: process.env["CI"] ? [["github"], ["html"]] : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,
+    ...(executablePath ? { launchOptions: { executablePath } } : {}),
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },

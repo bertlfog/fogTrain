@@ -1,5 +1,7 @@
 import { useRegisterSW } from "virtual:pwa-register/react";
 
+import { texts } from "./texts";
+
 /** Hinweis, wenn eine neue App-Version bereitsteht (Service-Worker-Update). */
 export function UpdatePrompt() {
   const {
@@ -12,14 +14,14 @@ export function UpdatePrompt() {
   }
 
   return (
-    <div role="status">
-      <span>Neue Version verfügbar.</span>{" "}
+    <div className="update-banner" role="status">
+      <span>{texts.update.available}</span>
       <button
         type="button"
-        style={{ minHeight: 48, minWidth: 48 }}
+        className="button"
         onClick={() => void updateServiceWorker(true)}
       >
-        Aktualisieren
+        {texts.update.action}
       </button>
     </div>
   );

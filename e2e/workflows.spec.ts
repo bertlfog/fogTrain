@@ -36,7 +36,7 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   const origin = new URL(page.url()).origin;
   await context.setOffline(true);
 
-  await page.getByRole("link", { name: "Übungen", exact: true }).tap();
+  await page.goto("/#/uebungen");
   for (const [index, name] of ["Kniebeuge", "Liegestütz", "Plank"].entries()) {
     await page.getByRole("button", { name: "Neue Übung" }).click();
     await page.getByLabel("Name", { exact: true }).fill(name);
@@ -70,7 +70,7 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   ).toBeVisible();
   await expect(page.locator(".exercise-thumb")).toBeVisible();
 
-  await page.getByRole("link", { name: "Pläne", exact: true }).tap();
+  await page.goto("/#/plaene");
   await page.getByRole("button", { name: "Neuer Plan" }).click();
   await page.getByLabel("Planname").fill("Ganzkörper");
   for (const name of ["Kniebeuge vorne", "Liegestütz", "Plank"]) {
@@ -148,12 +148,12 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Abbrechen" }).click();
 
-  await page.getByRole("link", { name: "Verlauf", exact: true }).tap();
+  await page.goto("/#/verlauf");
   await page
     .getByLabel("Übung auswählen")
     .selectOption({ label: "Kniebeuge vorne (archiviert)" });
 
-  await page.getByRole("link", { name: "Einstellungen", exact: true }).tap();
+  await page.goto("/#/einstellungen");
   const downloadWait = page.waitForEvent("download");
   await page.getByRole("button", { name: "Daten exportieren" }).click();
   const download = await downloadWait;

@@ -36,7 +36,12 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   const origin = new URL(page.url()).origin;
   await context.setOffline(true);
 
-  await page.goto("/#/uebungen");
+  await page.evaluate(() => {
+    window.location.hash = "/uebungen";
+  });
+  await expect(
+    page.getByRole("heading", { name: "Übungen", exact: true }),
+  ).toBeVisible();
   for (const [index, name] of ["Kniebeuge", "Liegestütz", "Plank"].entries()) {
     await page.getByRole("button", { name: "Neue Übung" }).click();
     await page.getByLabel("Name", { exact: true }).fill(name);
@@ -70,7 +75,12 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   ).toBeVisible();
   await expect(page.locator(".exercise-thumb")).toBeVisible();
 
-  await page.goto("/#/plaene");
+  await page.evaluate(() => {
+    window.location.hash = "/plaene";
+  });
+  await expect(
+    page.getByRole("heading", { name: "Pläne", exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Neuer Plan" }).click();
   await page.getByLabel("Planname").fill("Ganzkörper");
   for (const name of ["Kniebeuge vorne", "Liegestütz", "Plank"]) {
@@ -148,12 +158,22 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Abbrechen" }).click();
 
-  await page.goto("/#/verlauf");
+  await page.evaluate(() => {
+    window.location.hash = "/verlauf";
+  });
+  await expect(
+    page.getByRole("heading", { name: "Verlauf", exact: true }),
+  ).toBeVisible();
   await page
     .getByLabel("Übung auswählen")
     .selectOption({ label: "Kniebeuge vorne (archiviert)" });
 
-  await page.goto("/#/einstellungen");
+  await page.evaluate(() => {
+    window.location.hash = "/einstellungen";
+  });
+  await expect(
+    page.getByRole("heading", { name: "Einstellungen", exact: true }),
+  ).toBeVisible();
   const downloadWait = page.waitForEvent("download");
   await page.getByRole("button", { name: "Daten exportieren" }).click();
   const download = await downloadWait;

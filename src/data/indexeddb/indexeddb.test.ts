@@ -11,6 +11,7 @@ import {
   workout,
 } from "../contract";
 import { DataError } from "../errors";
+import type { RepositoryData } from "../repositories";
 import { openIndexedDbRepositories } from "./index";
 import type { IndexedDbHandle } from "./index";
 import { migrations, upgrade } from "./schema";
@@ -70,6 +71,32 @@ describe("IndexedDB: Schema und Version", () => {
 
     const second = await openFresh(name);
     expect((await second.repositories.exercises.get("e1"))?.name).toBe("Plank");
+  });
+
+  it("rollt den vollständigen Bestandsaustausch bei einem Schreibfehler zurück", async () => {
+    const { repositories } = await openFresh();
+    await repositories.exercises.save(
+      exercise("kept", { name: "Vorhandene Übung" }),
+    );
+    const invalidExercise = Object.assign(exercise("new"), {
+      unsupported: () => undefined,
+    });
+    const replacement: RepositoryData = {
+      exercises: [invalidExercise],
+      exerciseImages: [],
+      plans: [],
+      planItems: [],
+      workouts: [],
+      loggedSets: [],
+    };
+
+    await expect(repositories.replaceAll(replacement)).rejects.toBeInstanceOf(
+      DataError,
+    );
+    expect((await repositories.exercises.get("kept"))?.name).toBe(
+      "Vorhandene Übung",
+    );
+    expect(await repositories.exercises.get("new")).toBeUndefined();
   });
 
   it("lehnt eine Datenbank mit neuerer Version ab (DataError 'version')", async () => {

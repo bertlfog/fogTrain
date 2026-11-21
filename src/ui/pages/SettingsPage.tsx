@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { backupFileName, createBackupService } from "../../data/backup";
+import type { ImportSummary } from "../../data/backup";
 import { useRepositories } from "../RepositoryContext";
 import { useStorageStatus } from "../StoragePersistence";
 import { texts } from "../texts";
@@ -14,6 +15,9 @@ export function SettingsPage() {
   );
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [backupData, setBackupData] = useState<unknown>();
+  const [importSummary, setImportSummary] = useState<ImportSummary>();
+  const importInput = useRef<HTMLInputElement>(null);
 
   const exportData = async () => {
     setBusy(true);
@@ -56,6 +60,51 @@ export function SettingsPage() {
     }
   };
 
+  const validateImport = async (file: File | undefined) => {
+    setBackupData(undefined);
+    setImportSummary(undefined);
+    setMessage("");
+    if (!file) return;
+
+    setBusy(true);
+    try {
+      const raw: unknown = JSON.parse(await file.text());
+      const result = createBackupService(repositories).validate(raw);
+      setBackupData(raw);
+      setImportSummary(result.summary);
+      setMessage(
+        "Backup ist gültig. Prüfe die Zusammenfassung vor dem Import.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? `Import nicht möglich: ${error.message}`
+          : "Import nicht möglich: Die Datei konnte nicht gelesen werden.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const importData = async () => {
+    if (backupData === undefined || !importSummary) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      await createBackupService(repositories).importReplaceAll(backupData);
+      setMessage("Backup wurde importiert. Die App wird aktualisiert.");
+      window.setTimeout(() => window.location.reload(), 300);
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? `Import fehlgeschlagen: ${error.message}`
+          : "Import fehlgeschlagen.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <>
       <h1>{texts.settings.title}</h1>
@@ -85,6 +134,56 @@ export function SettingsPage() {
         >
           {busy ? "Export wird erstellt …" : "Daten exportieren"}
         </button>
+        <h3>Backup importieren</h3>
+        <p>
+          Ein Import ersetzt alle vorhandenen Übungen, Bilder, Pläne und
+          Workouts.
+        </p>
+        <label className="button" htmlFor="backup-import-file">
+          JSON-Backup auswählen
+        </label>
+        <input
+          ref={importInput}
+          id="backup-import-file"
+          type="file"
+          accept="application/json,.json"
+          disabled={busy}
+          onChange={(event) => {
+            void validateImport(event.currentTarget.files?.[0]);
+          }}
+        />
+        {importSummary && (
+          <div role="region" aria-label="Backup-Zusammenfassung">
+            <p>
+              Übungen: {importSummary.exercises}; Pläne: {importSummary.plans};{" "}
+              Workouts: {importSummary.workouts}; Bilder:{" "}
+              {importSummary.exerciseImages}
+            </p>
+            <p role="alert">
+              Beim Import werden alle aktuell gespeicherten Daten vollständig
+              ersetzt.
+            </p>
+            <button
+              className="button"
+              onClick={() => void importData()}
+              disabled={busy}
+            >
+              {busy ? "Import wird ausgeführt …" : "Alle Daten ersetzen"}
+            </button>
+            <button
+              className="button"
+              onClick={() => {
+                setBackupData(undefined);
+                setImportSummary(undefined);
+                setMessage("Import abgebrochen.");
+                if (importInput.current) importInput.current.value = "";
+              }}
+              disabled={busy}
+            >
+              Abbrechen
+            </button>
+          </div>
+        )}
         {message && <p role="status">{message}</p>}
       </section>
     </>

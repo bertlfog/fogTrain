@@ -2,16 +2,20 @@ import { SCHEMA_VERSION } from "../../model";
 import type { ExportFile } from "../../model";
 import type { Repositories } from "../repositories";
 import { bytesToBase64 } from "./base64";
+import { createBackupImporter } from "./import";
+import type { ImportSummary, ImportValidationResult } from "./import";
 
 export { base64ToBytes, bytesToBase64 } from "./base64";
 export { migrateToLatest, migrateToVersion, migrations } from "./migrations";
+export type { ImportSummary, ImportValidationResult } from "./import";
 
 /**
- * Datensicherung (SPEC Abschnitt 4). Ein Import ist vorerst nicht Teil des
- * MVP; das Format bleibt über `schemaVersion` und `migrations/` importfähig.
+ * Datensicherung (SPEC Abschnitt 4).
  */
 export interface BackupService {
   exportAll(): Promise<ExportFile>;
+  validate(raw: unknown): ImportValidationResult;
+  importReplaceAll(raw: unknown): Promise<ImportSummary>;
 }
 
 export interface BackupServiceOptions {
@@ -51,6 +55,7 @@ export function createBackupService(
   options: BackupServiceOptions = {},
 ): BackupService {
   const now = options.now ?? (() => new Date());
+  const importer = createBackupImporter(repositories);
 
   return {
     async exportAll() {
@@ -94,5 +99,7 @@ export function createBackupService(
         },
       };
     },
+    validate: importer.validate,
+    importReplaceAll: importer.importReplaceAll,
   };
 }

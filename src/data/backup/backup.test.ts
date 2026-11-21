@@ -156,6 +156,67 @@ describe.each(implementations)(
   },
 );
 
+describe.each(implementations)(
+  "BackupService.importReplaceAll: %s",
+  (_label, create) => {
+    it("validiert und ersetzt den vollständigen Bestand einschließlich Bildern", async () => {
+      const fixture = loadFixture();
+      const repos = await create();
+      await repos.exercises.save(
+        exercise("old", { name: "Vorheriger Bestand" }),
+      );
+      const service = createBackupService(repos);
+
+      expect(service.validate(fixture).summary).toEqual({
+        exercises: 3,
+        exerciseImages: 1,
+        plans: 1,
+        workouts: 2,
+      });
+      await service.importReplaceAll(fixture);
+
+      expect(await repos.exercises.get("old")).toBeUndefined();
+      const imported = await createBackupService(repos).exportAll();
+      expect(imported.data).toEqual(fixture.data);
+      const image = (await repos.exercises.listImages("e-1"))[0];
+      expect(image?.data.type).toBe("image/png");
+      const imageData = image?.data;
+      expect(imageData).toBeDefined();
+      if (!imageData) throw new Error("Importiertes Bild fehlt.");
+      expect([...new Uint8Array(await imageData.arrayBuffer())]).toEqual([
+        ...base64ToBytes(fixture.data.exerciseImages[0]?.dataBase64 ?? ""),
+      ]);
+    });
+
+    it("ändert bei ungültigen Daten oder unbekannter Version nichts", async () => {
+      const repos = await create();
+      await repos.exercises.save(exercise("keep", { name: "Bleibt erhalten" }));
+      const service = createBackupService(repos);
+      const invalidFixture = {
+        ...loadFixture(),
+        data: {
+          ...loadFixture().data,
+          planItems: loadFixture().data.planItems.map((item, index) =>
+            index === 0 ? { ...item, exerciseId: "missing-exercise" } : item,
+          ),
+        },
+      };
+
+      await expect(
+        service.importReplaceAll(invalidFixture),
+      ).rejects.toMatchObject({ code: "invalid" });
+      await expect(
+        service.importReplaceAll({
+          ...loadFixture(),
+          schemaVersion: 999,
+        }),
+      ).rejects.toMatchObject({ code: "version" });
+      expect((await repos.exercises.get("keep"))?.name).toBe("Bleibt erhalten");
+      expect(await repos.plans.list({ includeArchived: true })).toEqual([]);
+    });
+  },
+);
+
 describe("backupFileName", () => {
   it("folgt der Konvention trainingapp-backup-YYYY-MM-DD.json", () => {
     expect(backupFileName(new Date(2026, 10, 7, 23, 59))).toBe(

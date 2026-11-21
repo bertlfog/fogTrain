@@ -1,5 +1,5 @@
 import { DataError } from "../errors";
-import type { Repositories } from "../repositories";
+import type { Repositories, RepositoryData } from "../repositories";
 import type {
   Exercise,
   ExerciseImage,
@@ -212,6 +212,40 @@ export function createMemoryRepositories(): Repositories {
         for (const set of setsOfWorkout(id)) loggedSets.delete(set.id);
         workouts.delete(id);
       },
+    },
+
+    async replaceAll(data: RepositoryData) {
+      const nextExercises = new Map(
+        data.exercises.map((item) => [item.id, { ...item }]),
+      );
+      const nextImages = new Map(
+        data.exerciseImages.map((item) => [item.id, { ...item }]),
+      );
+      const nextPlans = new Map(
+        data.plans.map((item) => [item.id, { ...item }]),
+      );
+      const nextPlanItems = new Map(
+        data.planItems.map((item) => [item.id, { ...item }]),
+      );
+      const nextWorkouts = new Map(
+        data.workouts.map((item) => [item.id, { ...item }]),
+      );
+      const nextSets = new Map(
+        data.loggedSets.map((item) => [item.id, { ...item }]),
+      );
+
+      exercises.clear();
+      exerciseImages.clear();
+      plans.clear();
+      planItems.clear();
+      workouts.clear();
+      loggedSets.clear();
+      for (const [id, item] of nextExercises) exercises.set(id, item);
+      for (const [id, item] of nextImages) exerciseImages.set(id, item);
+      for (const [id, item] of nextPlans) plans.set(id, item);
+      for (const [id, item] of nextPlanItems) planItems.set(id, item);
+      for (const [id, item] of nextWorkouts) workouts.set(id, item);
+      for (const [id, item] of nextSets) loggedSets.set(id, item);
     },
   };
 }

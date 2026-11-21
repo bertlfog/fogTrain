@@ -70,9 +70,21 @@ export interface WorkoutRepository {
   remove(id: Id): Promise<void>;
 }
 
+/** Vollständiger lokaler Datenbestand, z. B. aus einem validierten Backup. */
+export interface RepositoryData {
+  exercises: Exercise[];
+  exerciseImages: ExerciseImage[];
+  plans: Plan[];
+  planItems: PlanItem[];
+  workouts: Workout[];
+  loggedSets: LoggedSet[];
+}
+
 /** Alle Repositories, wie sie die Composition Root bereitstellt. */
 export interface Repositories {
   exercises: ExerciseRepository;
   plans: PlanRepository;
   workouts: WorkoutRepository;
+  /** Ersetzt alle Stores atomar; bei Fehler bleibt der vorherige Bestand erhalten. */
+  replaceAll(data: RepositoryData): Promise<void>;
 }

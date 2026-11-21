@@ -31,11 +31,13 @@ npm run e2e          # Playwright gegen den Produktions-Build
 ## Backup und Daten
 
 Die App speichert Daten in der IndexedDB dieses Browsers. Es gibt keine
-Cloud-Synchronisierung und derzeit keinen Backup-Import. Unter **Einstellungen
-→ Daten exportieren** kann jederzeit ein JSON-Backup mit Übungen, Bildern,
-Plänen und Workouts erstellt werden. Backups regelmäßig außerhalb des Geräts
-sichern, da Browserdaten bei Geräteverlust oder manuellem Löschen verloren gehen
-können.
+Cloud-Synchronisierung. Unter **Einstellungen → Daten exportieren** kann
+jederzeit ein JSON-Backup mit Übungen, Bildern, Plänen und Workouts erstellt
+werden. Ein Backup lässt sich unter **Einstellungen → Backup importieren**
+validieren und nach Prüfung der Zusammenfassung durch Bestätigung vollständig
+importieren; dabei wird der aktuelle lokale Datenbestand ersetzt. Backups
+regelmäßig außerhalb des Geräts sichern, da Browserdaten bei Geräteverlust oder
+manuellem Löschen verloren gehen können.
 
 ## Auf Android installieren
 

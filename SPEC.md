@@ -15,7 +15,7 @@ Persönliche Fitness-/Workout-App für **genau einen Nutzer** (den Auftraggeber)
 - Trainingsplan anlegen: geordnete Auswahl von Übungen mit Soll-Werten.
 - Workout loggen: Sätze mit Wiederholungen, Gewicht, Dauer.
 - Verlauf und Fortschritt anzeigen.
-- Export aller Daten als JSON (Backup). Ein Import ist vorerst nicht Teil des MVP.
+- Export und Import aller Daten als JSON-Backup; der Import validiert die Datei und ersetzt den lokalen Datenbestand nach Bestätigung atomar.
 - Installierbar als PWA, vollständig offline nutzbar.
 
 ### Kann bewusst nicht
@@ -23,7 +23,7 @@ Persönliche Fitness-/Workout-App für **genau einen Nutzer** (den Auftraggeber)
 - Keine weiteren Nutzer, kein Teilen, keine Veröffentlichung (kein App-Store, keine SEO, keine Mehrbenutzer-Logik).
 - Keine Health-Daten (Puls, Schritte, Schlaf), keine Uhr-/Wearable-Anbindung, kein Health Connect.
 - Keine automatische Cloud-Synchronisation (Backup nur manuell über Export).
-- Kein Import von Backups vorerst (Entscheidung des Auftraggebers); das Export-Format bleibt versioniert, damit ein Import später möglich ist.
+- Keine Cloud-Synchronisierung; der Import erfolgt ausschließlich aus einer lokalen Backup-Datei.
 - Keine Push-Erinnerungen (Entscheidung des Auftraggebers).
 - Keine Funktionen über das MVP hinaus, bis der Auftraggeber sie benennt (**[Offen]** F2).
 
@@ -71,8 +71,7 @@ Allgemeines Offline-Verhalten: Nach der ersten Installation/dem ersten Laden fun
 3. Android-Download-/Teilen-Dialog öffnet sich; Nutzer speichert die Datei.
 - Offline: funktioniert (rein lokal).
 
-### F-F: Import (zurückgestellt, vorerst nicht umsetzen)
-Hinweis: Der Auftraggeber hat entschieden, den Import vorerst wegzulassen. Der Fluss bleibt als Vorlage für später erhalten und wird in den Aufgaben T1 bis T11 nicht gebaut.
+### F-F: Import
 1. Nutzer öffnet „Einstellungen" und tippt „Daten importieren", wählt eine JSON-Datei.
 2. App validiert Datei (Format, Schema-Version, Pflichtfelder) **vor** jeder Änderung. Bei Fehler: verständliche Meldung, Daten bleiben unverändert.
 3. App zeigt Zusammenfassung (Anzahl Übungen, Pläne, Workouts) und fragt: „Alle vorhandenen Daten ersetzen?" (**[Annahme]** MVP kennt nur Ersetzen, kein Zusammenführen; **[Offen]** F3).
@@ -218,7 +217,7 @@ export interface ExportFile {
    │  ├─ repositories.ts     # Interfaces (siehe unten)
    │  ├─ indexeddb/          # Implementierung, Schema, Migrationen
    │  ├─ memory/             # In-Memory-Implementierung für Tests
-   │  └─ backup/             # Export (Import später)
+   │  └─ backup/             # Export, validierter Import und Migrationen
    ├─ domain/                # reine Fachlogik
    ├─ ui/                    # Komponenten, Seiten, Routing, Hooks
    ├─ app/                   # Composition Root (verdrahtet Repos, Provider)
@@ -258,9 +257,8 @@ export interface WorkoutRepository {
 
 export interface BackupService {
   exportAll(): Promise<ExportFile>;
-  // Zurückgestellt (Import vorerst nicht im Umfang):
-  // validate(raw: unknown): ImportValidationResult;       // ohne Seiteneffekt
-  // importReplaceAll(file: ExportFile): Promise<void>;    // eine Transaktion
+  validate(raw: unknown): ImportValidationResult;       // ohne Seiteneffekt
+  importReplaceAll(file: unknown): Promise<ImportSummary>; // eine Transaktion
 }
 ```
 Alle Methoden sind asynchron, werfen typisierte Fehler (`DataError` mit `code`), und liefern bei Nicht-Vorhandensein `undefined` statt zu werfen.
@@ -276,7 +274,7 @@ Messgerät/Referenz: **[Annahme]** mittelklassiges Android-Smartphone mit aktuel
 | N1 | Satz loggen (Plan gewählt, Workout läuft, Werte vorbefüllt) | höchstens **3 Taps** pro Satz; im Normalfall 1 Tap („Satz erledigt") |
 | N2 | Workout starten von der Startseite | höchstens **2 Taps** (Plan wählen/Start) |
 | N3 | Start der App offline (Service Worker aktiv, kalter Start) bis interaktive Startseite | unter **2 s** (Playwright, gedrosselte CPU 4×) |
-| N4 | Vollständig offline: alle Flüsse F-A bis F-E | E2E-Test mit `context.setOffline(true)` besteht |
+| N4 | Vollständig offline: alle Flüsse F-A bis F-F | E2E-Test mit `context.setOffline(true)` besteht |
 | N5 | Satz speichern: Tap bis Persistenz bestätigt | unter **100 ms** (Domäne+IndexedDB, Test mit 5000 Sätzen im Bestand) |
 | N6 | Verlaufsliste und Fortschritt öffnen mit 2 Jahren Daten (**[Annahme]** 500 Workouts, 10 000 Sätze) | unter **500 ms** bis erste Darstellung |
 | N7 | Export von 500 Workouts ohne Bilder | unter **3 s** |
@@ -297,13 +295,13 @@ Messgerät/Referenz: **[Annahme]** mittelklassiges Android-Smartphone mit aktuel
 - **Ort:** neben dem Code (`*.test.ts`), Ausführung `npm test`.
 - **Domäne:** Vorbefüllung (Plan-Soll vs. letzte Werte), Fortschritt (bester Satz, Volumen), Validierung (Pflichtfelder, Grenzen, „mindestens ein Wert"), Positionsumsortierung, Archivieren-vs-Löschen-Entscheidung.
 - **Datenschicht:** dieselbe Contract-Testsuite läuft gegen **In-Memory** und **IndexedDB** (mit `fake-indexeddb`): CRUD, Transaktionen/Rollback, Indizes, Löschregeln.
-- **Backup:** Export erzeugt gültiges JSON gemäß `ExportFile` (Schema-Version, Bilder als Base64, alle Stores enthalten); eine eingefrorene Fixture der Version 1 sichert das Format. Import-Tests entfallen vorerst.
+- **Backup:** Export erzeugt gültiges JSON gemäß `ExportFile` (Schema-Version, Bilder als Base64, alle Stores enthalten); Import validiert Schema und Beziehungen vor dem atomaren vollständigen Ersetzen. Tests decken gültige/ungültige Backups, Bilder und Rollback ab.
 - **Ziel Abdeckung:** mindestens 90 % Zeilen in `src/domain` und `src/data`; UI nicht per Quote gesteuert.
 
 ### End-to-End (Playwright, Headless Chromium, Mobile-Viewport Pixel 7)
 Läuft gegen den Produktions-Build (`vite preview`), jeder Test mit frischem Browser-Kontext.
-- **Flüsse F-A bis F-E** je als Happy-Path-Test inkl. Neuladen der Seite zur Prüfung der Persistenz.
-- **Offline:** Seite einmal laden, Service Worker abwarten, `setOffline(true)`, Neuladen, dann F-A bis F-E ausführen.
+- **Flüsse F-A bis F-F** je als Happy-Path-Test inkl. Neuladen der Seite zur Prüfung der Persistenz.
+- **Offline:** Seite einmal laden, Service Worker abwarten, `setOffline(true)`, Neuladen, dann F-A bis F-F ausführen.
 - **N1/N2:** Test zählt Taps beim Loggen eines Satzes und Workout-Starts und schlägt bei Überschreitung fehl.
 - **N3:** Kaltstart-Messung offline mit Schwellwert.
 - **N8:** Mitten im Workout Seite neu laden; geloggte Sätze und Fortsetzen-Angebot vorhanden.
@@ -340,7 +338,7 @@ Konvention: Jede Aufgabe wird einzeln umgesetzt, auf einem eigenen Commit/Branch
 
 ### T4 – Export
 - **Voraus:** T3.
-- **Ergebnis:** `BackupService.exportAll`, Migrationsrahmen `migrations/` mit Registry und Test-Fixture für Version 1 (Format-Versionierung bleibt, damit ein späterer Import möglich ist), Base64-Kodierung der Bilder, Dateiname-Konvention. Noch ohne UI.
+- **Ergebnis:** `BackupService.exportAll`, `validate` und `importReplaceAll`, Migrationsrahmen `migrations/`, Test-Fixture für Version 1, Base64-Kodierung der Bilder und Dateiname-Konvention. Import-UI in den Einstellungen.
 - **Abnahme:** Export enthält alle Stores und entspricht `ExportFile` (Test gegen Fixture); Bild-Bytes sind aus dem Base64-Wert unverändert rekonstruierbar; Performance N7.
 
 ### T5 – App-Rahmen und Navigation
@@ -376,7 +374,7 @@ Konvention: Jede Aufgabe wird einzeln umgesetzt, auf einem eigenen Commit/Branch
 ### T11 – Abschluss und Gesamtprüfung
 - **Voraus:** T1 bis T10.
 - **Ergebnis:** Prüfung aller Nicht-funktionalen Ziele N1 bis N15 mit Mess-Tests, Request-Liste-Test (N11), Bundle-Größe-Prüfung (N12) in CI, kurze `README.md` (Start, Skripte, Backup-Hinweis, Installation auf Android).
-- **Abnahme:** Prüf-Agent hakt N1 bis N15 und F-A bis F-E gegen diese Spezifikation ab; alle Gates grün; manueller Check auf echtem Android-Gerät durch Auftraggeber (Installation, Offline-Start unter 2 s, ein Workout loggen).
+- **Abnahme:** Prüf-Agent hakt N1 bis N15 und F-A bis F-F gegen diese Spezifikation ab; alle Gates grün; manueller Check auf echtem Android-Gerät durch Auftraggeber (Installation, Offline-Start unter 2 s, ein Workout loggen).
 
 ---
 
@@ -384,7 +382,7 @@ Konvention: Jede Aufgabe wird einzeln umgesetzt, auf einem eigenen Commit/Branch
 
 ### Entschieden (Auftraggeber, 25.10.2026)
 - F1 Push-Erinnerungen: nein.
-- F3 Import: vorerst weglassen, Export bleibt (Zusammenführen entfällt damit ebenfalls).
+- F3 Import: vollständiger Ersatz des lokalen Datenbestands nach Vorschau und Bestätigung; Zusammenführen ist nicht vorgesehen.
 - F4 Hosting: GitHub Pages.
 - F6 Einheit: nur kg.
 - UI-Sprache: Deutsch.

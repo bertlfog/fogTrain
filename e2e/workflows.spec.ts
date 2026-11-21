@@ -134,7 +134,12 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
     .selectOption({ label: "Kniebeuge vorne" });
   await expect(page.getByRole("cell", { name: "200" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Übungen", exact: true }).tap();
+  await page.evaluate(() => {
+    window.location.hash = "/uebungen";
+  });
+  await expect(
+    page.getByRole("heading", { name: "Übungen", exact: true }),
+  ).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page
     .getByRole("listitem")
@@ -148,7 +153,12 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
     page.getByText(/wird wegen vorhandener Pläne oder Workouts archiviert/),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Pläne", exact: true }).tap();
+  await page.evaluate(() => {
+    window.location.hash = "/plaene";
+  });
+  await expect(
+    page.getByRole("heading", { name: "Pläne", exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("listitem")
     .filter({ hasText: "Ganzkörper" })

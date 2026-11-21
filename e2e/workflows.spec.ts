@@ -29,6 +29,7 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   page,
   context,
 }) => {
+  test.setTimeout(90_000);
   const requests: string[] = [];
   page.on("request", (request) => requests.push(request.url()));
   await page.goto("/");

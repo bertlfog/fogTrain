@@ -38,12 +38,7 @@ export function SettingsPage() {
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       };
 
-      const backup = new File([json], filename, { type: "application/json" });
-      if (navigator.canShare?.({ files: [backup] }) && navigator.share) {
-        await navigator.share({ files: [backup], title: "TrainingApp-Backup" });
-      } else {
-        download();
-      }
+      download();
       const exportedAt = now.toISOString();
       localStorage.setItem(LAST_EXPORT_KEY, exportedAt);
       setLastExport(exportedAt);

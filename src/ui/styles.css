@@ -230,6 +230,36 @@ button:focus-visible {
   font: inherit;
 }
 
+.number-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px 48px;
+  gap: 4px;
+  width: 100%;
+}
+
+.number-input input {
+  min-width: 0;
+}
+
+.number-input-stepper {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.number-input-stepper:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .field textarea {
   min-height: 96px;
   resize: vertical;
@@ -361,14 +391,50 @@ legend {
   border-radius: 8px;
 }
 
-.set-row {
-  display: grid;
-  width: 100%;
+.workout-set-group + .workout-set-group {
+  margin-top: 12px;
+}
+
+.workout-set-group h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.workout-set-table {
+  table-layout: fixed;
+  font-size: 0.875rem;
+}
+
+.workout-set-table th,
+.workout-set-table td {
+  padding: 6px 4px;
+  vertical-align: middle;
+}
+
+.workout-set-table th:first-child {
+  width: 52px;
+}
+
+.workout-set-table th:last-child {
+  width: 112px;
+}
+
+.workout-set-actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
-  padding: 12px;
+}
+
+.workout-set-actions .button {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+}
+
+.workout-set-edit {
+  padding: 8px;
+  border-radius: 8px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
 }
 
 .export-reminder {
@@ -383,6 +449,12 @@ legend {
     background: #403400;
     color: #fff3cd;
     border-color: #b49b35;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-grid .number-field {
+    grid-column: 1 / -1;
   }
 }
 

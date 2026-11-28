@@ -8,6 +8,7 @@ import {
 } from "../../domain";
 import type { Exercise, Plan, PlanItem } from "../../model";
 import { EmptyState } from "../EmptyState";
+import { NumberField } from "../NumberInput";
 import { useRepositories } from "../RepositoryContext";
 import { texts } from "../texts";
 
@@ -249,63 +250,43 @@ export function PlansPage() {
                     )?.name ?? "Archivierte Übung"}
                   </strong>
                   <div className="form-grid">
-                    <label className="field">
-                      Sätze
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={item.targetSets}
-                        onChange={(event) =>
-                          updateItem(item.id, "targetSets", event.target.value)
-                        }
-                      />
-                    </label>
-                    <label className="field">
-                      Wiederholungen
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={item.targetReps ?? ""}
-                        onChange={(event) =>
-                          updateItem(item.id, "targetReps", event.target.value)
-                        }
-                      />
-                    </label>
-                    <label className="field">
-                      Gewicht (kg)
-                      <input
-                        inputMode="decimal"
-                        type="number"
-                        min="0"
-                        step="0.25"
-                        value={item.targetWeightKg ?? ""}
-                        onChange={(event) =>
-                          updateItem(
-                            item.id,
-                            "targetWeightKg",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="field">
-                      Dauer (Sekunden)
-                      <input
-                        type="number"
-                        min="1"
-                        step="1"
-                        value={item.targetDurationSec ?? ""}
-                        onChange={(event) =>
-                          updateItem(
-                            item.id,
-                            "targetDurationSec",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
+                    <NumberField
+                      label="Sätze"
+                      min="1"
+                      step="1"
+                      value={item.targetSets}
+                      onValueChange={(value) =>
+                        updateItem(item.id, "targetSets", value)
+                      }
+                    />
+                    <NumberField
+                      label="Wiederholungen"
+                      min="1"
+                      step="1"
+                      value={item.targetReps ?? ""}
+                      onValueChange={(value) =>
+                        updateItem(item.id, "targetReps", value)
+                      }
+                    />
+                    <NumberField
+                      label="Gewicht (kg)"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.25"
+                      value={item.targetWeightKg ?? ""}
+                      onValueChange={(value) =>
+                        updateItem(item.id, "targetWeightKg", value)
+                      }
+                    />
+                    <NumberField
+                      label="Dauer (Sekunden)"
+                      min="1"
+                      step="1"
+                      value={item.targetDurationSec ?? ""}
+                      onValueChange={(value) =>
+                        updateItem(item.id, "targetDurationSec", value)
+                      }
+                    />
                   </div>
                   <div className="form-actions">
                     <button

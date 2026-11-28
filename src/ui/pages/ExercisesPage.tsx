@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { validateExercise } from "../../domain";
 import type { Exercise } from "../../model";
 import { EmptyState } from "../EmptyState";
+import { NumberField } from "../NumberInput";
 import { useRepositories } from "../RepositoryContext";
 import { resizeImage } from "../imageProcessing";
 import { texts } from "../texts";
@@ -287,58 +288,40 @@ export function ExercisesPage() {
                 }
               />
             </label>
-            <label className="field">
-              Standard-Sätze
-              <input
-                inputMode="numeric"
-                type="number"
-                min="1"
-                step="1"
-                value={fields.sets}
-                onChange={(event) =>
-                  setFields({ ...fields, sets: event.target.value })
-                }
-              />
-            </label>
-            <label className="field">
-              Standard-Wiederholungen
-              <input
-                inputMode="numeric"
-                type="number"
-                min="1"
-                step="1"
-                value={fields.reps}
-                onChange={(event) =>
-                  setFields({ ...fields, reps: event.target.value })
-                }
-              />
-            </label>
-            <label className="field">
-              Standard-Gewicht (kg)
-              <input
-                inputMode="decimal"
-                type="number"
-                min="0"
-                step="0.25"
-                value={fields.weight}
-                onChange={(event) =>
-                  setFields({ ...fields, weight: event.target.value })
-                }
-              />
-            </label>
-            <label className="field">
-              Standard-Dauer (Sekunden)
-              <input
-                inputMode="numeric"
-                type="number"
-                min="1"
-                step="1"
-                value={fields.duration}
-                onChange={(event) =>
-                  setFields({ ...fields, duration: event.target.value })
-                }
-              />
-            </label>
+            <NumberField
+              label="Standard-Sätze"
+              inputMode="numeric"
+              min="1"
+              step="1"
+              value={fields.sets}
+              onValueChange={(value) => setFields({ ...fields, sets: value })}
+            />
+            <NumberField
+              label="Standard-Wiederholungen"
+              inputMode="numeric"
+              min="1"
+              step="1"
+              value={fields.reps}
+              onValueChange={(value) => setFields({ ...fields, reps: value })}
+            />
+            <NumberField
+              label="Standard-Gewicht (kg)"
+              inputMode="decimal"
+              min="0"
+              step="0.25"
+              value={fields.weight}
+              onValueChange={(value) => setFields({ ...fields, weight: value })}
+            />
+            <NumberField
+              label="Standard-Dauer (Sekunden)"
+              inputMode="numeric"
+              min="1"
+              step="1"
+              value={fields.duration}
+              onValueChange={(value) =>
+                setFields({ ...fields, duration: value })
+              }
+            />
             <label className="field">
               Bilder hinzufügen
               <input

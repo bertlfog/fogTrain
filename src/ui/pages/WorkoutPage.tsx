@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 
 import { nextSetNumber, prefillSetValues } from "../../domain";
 import type { Exercise, LoggedSet, PlanItem, Workout } from "../../model";
+import { NumberField } from "../NumberInput";
 import { useRepositories } from "../RepositoryContext";
 import { texts } from "../texts";
 
@@ -393,85 +394,72 @@ export function WorkoutPage() {
           <p>
             {activeSets.length} von {targetSets} Sätzen
           </p>
-          <label className="field">
-            Sätze für dieses Workout
-            <input
-              aria-label="Sätze für dieses Workout"
+          <NumberField
+            label="Sätze für dieses Workout"
+            inputMode="numeric"
+            min="1"
+            step="1"
+            value={targetSetsValue}
+            onValueChange={(value) => {
+              const next = {
+                ...setOverrides,
+                [active.exercise.id]: value,
+              };
+              setSetOverrides(next);
+              try {
+                sessionStorage.setItem(
+                  `trainingapp.setOverrides.${workout.id}`,
+                  JSON.stringify(next),
+                );
+              } catch (error) {
+                setMessage(
+                  error instanceof Error
+                    ? `Satzanzahl konnte nicht dauerhaft gehalten werden: ${error.message}`
+                    : "Satzanzahl konnte nicht dauerhaft gehalten werden.",
+                );
+              }
+            }}
+          />
+          <div className="form-grid">
+            <NumberField
+              label="Wiederholungen"
               inputMode="numeric"
-              type="number"
               min="1"
               step="1"
-              value={targetSetsValue}
-              onChange={(event) => {
-                const next = {
-                  ...setOverrides,
-                  [active.exercise.id]: event.target.value,
-                };
-                setSetOverrides(next);
-                try {
-                  sessionStorage.setItem(
-                    `trainingapp.setOverrides.${workout.id}`,
-                    JSON.stringify(next),
-                  );
-                } catch (error) {
-                  setMessage(
-                    error instanceof Error
-                      ? `Satzanzahl konnte nicht dauerhaft gehalten werden: ${error.message}`
-                      : "Satzanzahl konnte nicht dauerhaft gehalten werden.",
-                  );
-                }
-              }}
+              value={fields.reps}
+              onValueChange={(value) =>
+                setFieldOverrides({
+                  exerciseId: active.exercise.id,
+                  values: { ...fields, reps: value },
+                })
+              }
             />
-          </label>
-          <div className="form-grid">
-            <label className="field">
-              Wiederholungen
-              <input
-                inputMode="numeric"
-                type="number"
-                min="1"
-                step="1"
-                value={fields.reps}
-                onChange={(event) =>
-                  setFieldOverrides({
-                    exerciseId: active.exercise.id,
-                    values: { ...fields, reps: event.target.value },
-                  })
-                }
-              />
-            </label>
-            <label className="field">
-              Gewicht (kg)
-              <input
-                inputMode="decimal"
-                type="number"
-                min="0"
-                step="0.25"
-                value={fields.weight}
-                onChange={(event) =>
-                  setFieldOverrides({
-                    exerciseId: active.exercise.id,
-                    values: { ...fields, weight: event.target.value },
-                  })
-                }
-              />
-            </label>
-            <label className="field">
-              Dauer (Sekunden)
-              <input
-                inputMode="numeric"
-                type="number"
-                min="1"
-                step="1"
-                value={fields.duration}
-                onChange={(event) =>
-                  setFieldOverrides({
-                    exerciseId: active.exercise.id,
-                    values: { ...fields, duration: event.target.value },
-                  })
-                }
-              />
-            </label>
+            <NumberField
+              label="Gewicht (kg)"
+              inputMode="decimal"
+              min="0"
+              step="0.25"
+              value={fields.weight}
+              onValueChange={(value) =>
+                setFieldOverrides({
+                  exerciseId: active.exercise.id,
+                  values: { ...fields, weight: value },
+                })
+              }
+            />
+            <NumberField
+              label="Dauer (Sekunden)"
+              inputMode="numeric"
+              min="1"
+              step="1"
+              value={fields.duration}
+              onValueChange={(value) =>
+                setFieldOverrides({
+                  exerciseId: active.exercise.id,
+                  values: { ...fields, duration: value },
+                })
+              }
+            />
           </div>
           <div className="form-actions">
             <button

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 import { exerciseProgress, workoutVolume } from "../../domain";
 import type { Exercise, LoggedSet, Workout } from "../../model";
 import { EmptyState } from "../EmptyState";
+import { NumberField } from "../NumberInput";
 import { useRepositories } from "../RepositoryContext";
 import { texts } from "../texts";
 
@@ -11,6 +12,50 @@ const formatDate = (value: string) =>
     dateStyle: "medium",
     timeStyle: "short",
   });
+
+const formatSetPerformance = (set: LoggedSet) => {
+  const strength = [
+    set.weightKg !== undefined
+      ? `${set.weightKg.toLocaleString("de-DE")} kg`
+      : undefined,
+    set.reps !== undefined ? `${set.reps} Wdh.` : undefined,
+  ]
+    .filter((value) => value !== undefined)
+    .join(" × ");
+  const duration =
+    set.durationSec !== undefined ? `${set.durationSec} s` : undefined;
+  return (
+    [strength || undefined, duration]
+      .filter((value) => value !== undefined)
+      .join(" · ") || "–"
+  );
+};
+
+const groupSetsByExercise = (sets: LoggedSet[]) => {
+  const groups = new Map<
+    string,
+    { id: string; name: string; order: number; sets: LoggedSet[] }
+  >();
+  for (const set of sets) {
+    const group = groups.get(set.exerciseId);
+    if (group) {
+      group.sets.push(set);
+    } else {
+      groups.set(set.exerciseId, {
+        id: set.exerciseId,
+        name: set.exerciseNameSnapshot,
+        order: set.exerciseOrder,
+        sets: [set],
+      });
+    }
+  }
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      sets: group.sets.sort((a, b) => a.setNumber - b.setNumber),
+    }))
+    .sort((a, b) => a.order - b.order);
+};
 
 export function HistoryPage() {
   const { exercises, workouts } = useRepositories();
@@ -24,6 +69,7 @@ export function HistoryPage() {
     workout: Workout;
     sets: LoggedSet[];
   }>();
+  const [editingSet, setEditingSet] = useState<LoggedSet>();
   const [selectedExercise, setSelectedExercise] = useState("");
   const [progressData, setProgressData] = useState<{
     exerciseId: string;
@@ -72,6 +118,7 @@ export function HistoryPage() {
 
   const openWorkout = async (id: string) => {
     setSelectedWorkout(id);
+    setEditingSet(undefined);
     setMessage("");
     try {
       const found = await workouts.get(id);
@@ -125,21 +172,17 @@ export function HistoryPage() {
     }
   };
 
-  const updateSet = (
+  const updateEditingSet = (
     id: string,
     key: "reps" | "weightKg" | "durationSec",
     raw: string,
   ) => {
-    if (!detail) return;
-    setDetail({
-      ...detail,
-      sets: detail.sets.map((set) => {
-        if (set.id !== id) return set;
-        if (raw === "") {
-          return { ...set, [key]: undefined };
-        }
-        return { ...set, [key]: Number(raw) };
-      }),
+    setEditingSet((current) => {
+      if (!current || current.id !== id) return current;
+      if (raw === "") {
+        return { ...current, [key]: undefined };
+      }
+      return { ...current, [key]: Number(raw) };
     });
   };
 
@@ -160,6 +203,17 @@ export function HistoryPage() {
     }
     try {
       await workouts.saveSet(set);
+      setDetail((current) =>
+        current
+          ? {
+              ...current,
+              sets: current.sets.map((entry) =>
+                entry.id === set.id ? set : entry,
+              ),
+            }
+          : current,
+      );
+      setEditingSet(undefined);
       setMessage("Satzänderung gespeichert.");
     } catch (error) {
       setMessage(
@@ -176,6 +230,7 @@ export function HistoryPage() {
         ...detail,
         sets: detail.sets.filter((entry) => entry.id !== set.id),
       });
+      if (editingSet?.id === set.id) setEditingSet(undefined);
       setCounts((current) => ({
         ...current,
         [detail.workout.id]: Math.max(0, (current[detail.workout.id] ?? 1) - 1),
@@ -200,6 +255,7 @@ export function HistoryPage() {
       await workouts.remove(detail.workout.id);
       setDetail(undefined);
       setSelectedWorkout(undefined);
+      setEditingSet(undefined);
       await refresh();
     } catch (error) {
       setMessage(
@@ -325,68 +381,138 @@ export function HistoryPage() {
             · Volumen {workoutVolume(detail.sets).toLocaleString("de-DE")}{" "}
             kg·Wdh.
           </p>
-          <ul className="list">
-            {detail.sets.map((set) => (
-              <li className="set-row" key={set.id}>
-                <strong>
-                  {set.exerciseNameSnapshot} · Satz {set.setNumber}
-                </strong>
-                <div className="form-grid">
-                  <label className="field">
-                    Wiederholungen
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={set.reps ?? ""}
-                      onChange={(event) =>
-                        updateSet(set.id, "reps", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="field">
-                    Gewicht (kg)
-                    <input
-                      inputMode="decimal"
-                      type="number"
-                      min="0"
-                      step="0.25"
-                      value={set.weightKg ?? ""}
-                      onChange={(event) =>
-                        updateSet(set.id, "weightKg", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="field">
-                    Dauer (s)
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={set.durationSec ?? ""}
-                      onChange={(event) =>
-                        updateSet(set.id, "durationSec", event.target.value)
-                      }
-                    />
-                  </label>
-                </div>
-                <div className="form-actions">
-                  <button
-                    className="button button-secondary"
-                    onClick={() => void saveSet(set)}
-                  >
-                    Änderung speichern
-                  </button>
-                  <button
-                    className="button button-secondary"
-                    onClick={() => void deleteSet(set)}
-                  >
-                    Satz löschen
-                  </button>
-                </div>
-              </li>
+          <div className="workout-set-groups">
+            {groupSetsByExercise(detail.sets).map((group) => (
+              <section className="workout-set-group" key={group.id}>
+                <h3>{group.name}</h3>
+                <table
+                  className="workout-set-table"
+                  aria-label={`Sätze für ${group.name}`}
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">Satz</th>
+                      <th scope="col">Leistung</th>
+                      <th scope="col">Aktionen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.sets.map((set) => (
+                      <Fragment key={set.id}>
+                        <tr>
+                          <th scope="row">Satz {set.setNumber}</th>
+                          <td>{formatSetPerformance(set)}</td>
+                          <td>
+                            <div className="workout-set-actions">
+                              <button
+                                className="button button-secondary"
+                                onClick={() => setEditingSet({ ...set })}
+                                disabled={editingSet !== undefined}
+                                aria-label={`Satz ${set.setNumber} bearbeiten`}
+                              >
+                                <svg
+                                  width="20"
+                                  height="20"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M4 20l4.5-1L19 8.5a2.1 2.1 0 0 0-3-3L5.5 16z" />
+                                </svg>
+                              </button>
+                              <button
+                                className="button button-secondary"
+                                onClick={() => void deleteSet(set)}
+                                aria-label={`Satz ${set.setNumber} löschen`}
+                              >
+                                <svg
+                                  width="20"
+                                  height="20"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M4 7h16M10 11v6M14 11v6M5 7l1 14h12l1-14M9 7V4h6v3" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {editingSet?.id === set.id && (
+                          <tr>
+                            <td colSpan={3}>
+                              <div className="workout-set-edit">
+                                <div className="form-grid">
+                                  <NumberField
+                                    label="Wiederholungen"
+                                    min="1"
+                                    step="1"
+                                    value={editingSet.reps ?? ""}
+                                    onValueChange={(value) =>
+                                      updateEditingSet(set.id, "reps", value)
+                                    }
+                                  />
+                                  <NumberField
+                                    label="Gewicht (kg)"
+                                    inputMode="decimal"
+                                    min="0"
+                                    step="0.25"
+                                    value={editingSet.weightKg ?? ""}
+                                    onValueChange={(value) =>
+                                      updateEditingSet(
+                                        set.id,
+                                        "weightKg",
+                                        value,
+                                      )
+                                    }
+                                  />
+                                  <NumberField
+                                    label="Dauer (s)"
+                                    min="1"
+                                    step="1"
+                                    value={editingSet.durationSec ?? ""}
+                                    onValueChange={(value) =>
+                                      updateEditingSet(
+                                        set.id,
+                                        "durationSec",
+                                        value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="form-actions">
+                                  <button
+                                    className="button"
+                                    onClick={() => void saveSet(editingSet)}
+                                  >
+                                    Änderung speichern
+                                  </button>
+                                  <button
+                                    className="button button-secondary"
+                                    onClick={() => setEditingSet(undefined)}
+                                  >
+                                    Abbrechen
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
             ))}
-          </ul>
+          </div>
           <button
             className="button button-secondary"
             onClick={() => void deleteWorkout()}

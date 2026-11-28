@@ -47,10 +47,31 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
     await page.getByRole("button", { name: "Neue Übung" }).click();
     await page.getByLabel("Name", { exact: true }).fill(name);
     if (index === 0) {
-      await page.getByLabel("Standard-Sätze").fill("4");
+      await page.getByLabel("Standard-Sätze", { exact: true }).fill("4");
     }
-    await page.getByLabel("Standard-Wiederholungen").fill("10");
-    await page.getByLabel("Standard-Gewicht (kg)").fill("20");
+    await page
+      .getByLabel("Standard-Wiederholungen", { exact: true })
+      .fill("10");
+    const defaultWeight = page.getByLabel("Standard-Gewicht (kg)", {
+      exact: true,
+    });
+    if (index === 0) {
+      await page
+        .getByRole("button", { name: "Standard-Gewicht (kg) erhöhen" })
+        .tap();
+      await expect(defaultWeight).toHaveValue("0.25");
+    }
+    await defaultWeight.fill("20");
+    if (index === 0) {
+      await page
+        .getByRole("button", { name: "Standard-Gewicht (kg) erhöhen" })
+        .tap();
+      await expect(defaultWeight).toHaveValue("20.25");
+      await page
+        .getByRole("button", { name: "Standard-Gewicht (kg) verringern" })
+        .tap();
+      await expect(defaultWeight).toHaveValue("20");
+    }
     if (index === 0) {
       await page.getByLabel("Bilder hinzufügen").setInputFiles({
         name: "uebung.png",
@@ -91,7 +112,7 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
     page
       .getByRole("listitem")
       .filter({ hasText: "Kniebeuge vorne" })
-      .getByLabel("Sätze"),
+      .getByLabel("Sätze", { exact: true }),
   ).toHaveValue("4");
   await page.getByRole("button", { name: "Nach unten" }).first().click();
   await page.getByRole("button", { name: "Speichern" }).click();
@@ -107,8 +128,29 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
     "Workout-Start-Taps",
   ).toBeLessThanOrEqual(2);
   await expect(page.getByRole("heading", { name: "Ganzkörper" })).toBeVisible();
-  await expect(page.getByLabel("Sätze für dieses Workout")).toHaveValue("4");
-  await page.getByLabel("Sätze für dieses Workout").fill("2");
+  await page.setViewportSize({ width: 320, height: 800 });
+  const workoutSetCount = page.getByRole("spinbutton", {
+    name: "Sätze für dieses Workout",
+  });
+  await expect(workoutSetCount).toHaveValue("4");
+  const repsInput = page.getByRole("spinbutton", { name: "Wiederholungen" });
+  const repsBounds = await repsInput.boundingBox();
+  expect(repsBounds?.width).toBeGreaterThan(100);
+  const increaseButton = page.getByRole("button", {
+    name: "Wiederholungen erhöhen",
+  });
+  const increaseBounds = await increaseButton.boundingBox();
+  expect(increaseBounds?.width).toBeGreaterThanOrEqual(48);
+  expect(increaseBounds?.height).toBeGreaterThanOrEqual(48);
+  await page
+    .getByRole("button", { name: "Sätze für dieses Workout erhöhen" })
+    .tap();
+  await expect(workoutSetCount).toHaveValue("5");
+  await page
+    .getByRole("button", { name: "Sätze für dieses Workout verringern" })
+    .tap();
+  await expect(workoutSetCount).toHaveValue("4");
+  await workoutSetCount.fill("2");
   await expect(page.getByText("0 von 2 Sätzen")).toBeVisible();
   await resetTapCount(page);
   await page.getByRole("button", { name: "Satz erledigt" }).click();
@@ -121,7 +163,9 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   ).toBeVisible();
   await page.getByRole("button", { name: "Workout fortsetzen" }).click();
   await expect(page.getByText("1 von 2 Sätzen")).toBeVisible();
-  await expect(page.getByLabel("Sätze für dieses Workout")).toHaveValue("2");
+  await expect(
+    page.getByRole("spinbutton", { name: "Sätze für dieses Workout" }),
+  ).toHaveValue("2");
   await page.getByRole("button", { name: "Workout beenden" }).click();
   await expect(page.getByText("1 Satz gespeichert.")).toBeVisible();
   await page.getByRole("button", { name: "Zum Verlauf" }).click();
@@ -129,10 +173,34 @@ test("Übungen, Plan, Workout, Verlauf und Backup funktionieren offline", async 
   await expect(page.getByText("Ganzkörper", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Ganzkörper/ }).click();
   await expect(page.getByText(/Volumen 200 kg·Wdh\./)).toBeVisible();
+  const setTable = page.locator(".workout-set-table");
+  await expect(setTable).toHaveCount(1);
+  await expect(
+    setTable.getByRole("cell", { name: "20 kg × 10 Wdh." }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 800 });
+  expect(
+    await setTable.evaluate((table) => table.scrollWidth <= table.clientWidth),
+    "Satz-Tabelle soll ohne horizontales Scrollen passen",
+  ).toBe(true);
+
+  await page.getByRole("button", { name: "Satz 1 bearbeiten" }).click();
+  await page.getByLabel("Wiederholungen", { exact: true }).fill("9");
+  await page.getByRole("button", { name: "Abbrechen" }).click();
+  await expect(
+    setTable.getByRole("cell", { name: "20 kg × 10 Wdh." }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Satz 1 bearbeiten" }).click();
+  await page.getByLabel("Wiederholungen", { exact: true }).fill("9");
+  await page.getByRole("button", { name: "Änderung speichern" }).click();
+  await expect(
+    setTable.getByRole("cell", { name: "20 kg × 9 Wdh." }),
+  ).toBeVisible();
   await page
     .getByLabel("Übung auswählen")
     .selectOption({ label: "Kniebeuge vorne" });
-  await expect(page.getByRole("cell", { name: "200" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "180" })).toBeVisible();
 
   await page.evaluate(() => {
     window.location.hash = "/uebungen";
